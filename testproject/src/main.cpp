@@ -1,5 +1,10 @@
 #include "main.h"
 
+// Autonomous selector (use in autonomous()).
+constexpr int kAutonCount = 3;
+const char* const kAutonNames[kAutonCount] = {"Left", "Right", "Skills"};
+int g_auton_selector = 0;
+
 /**
  * A callback function for LLEMU's center button.
  *
@@ -34,7 +39,15 @@ void initialize() {
  * the VEX Competition Switch, following either autonomous or opcontrol. When
  * the robot is enabled, this task will exit.
  */
-void disabled() {}
+void disabled() {
+	while (pros::competition::is_disabled()) {
+		const double volts = static_cast<double>(pros::battery::get_voltage()) / 1000.0;
+		pros::lcd::print(0, "Disabled");
+		pros::lcd::print(1, "Auton: %s", kAutonNames[g_auton_selector]);
+		pros::lcd::print(2, "Batt: %.2fV", volts);
+		pros::delay(250);
+	}
+}
 
 /**
  * Runs after initialize(), and before autonomous when connected to the Field
@@ -45,7 +58,27 @@ void disabled() {}
  * This task will exit when the robot is enabled and autonomous or opcontrol
  * starts.
  */
-void competition_initialize() {}
+void competition_initialize() {
+	int last_buttons = 0;
+
+	while (pros::competition::is_disabled()) {
+		const int buttons = pros::lcd::read_buttons();
+
+		if ((buttons & LCD_BTN_LEFT) && !(last_buttons & LCD_BTN_LEFT)) {
+			g_auton_selector = (g_auton_selector + kAutonCount - 1) % kAutonCount;
+		}
+
+		if ((buttons & LCD_BTN_RIGHT) && !(last_buttons & LCD_BTN_RIGHT)) {
+			g_auton_selector = (g_auton_selector + 1) % kAutonCount;
+		}
+
+		pros::lcd::print(1, "Auton: %s", kAutonNames[g_auton_selector]);
+		pros::lcd::print(2, "< Left   Right >");
+
+		last_buttons = buttons;
+		pros::delay(20);
+	}
+}
 
 /**
  * Runs the user autonomous code. This function will be started in its own task
@@ -59,6 +92,12 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {}
+
+// Drive ports assume left side on 1,2,3 and right side on 4,5,6; adjust as needed.
+constexpr int kTopRollerPort = 7;
+constexpr int kConveyorPort = 8;
+constexpr int kRollerSpeed = 127;
+constexpr int kConveyorSpeed = 127;
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -75,8 +114,10 @@ void autonomous() {}
  */
 void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::MotorGroup left_mg({1, -2, 3});    // Creates a motor group with forwards ports 1 & 3 and reversed port 2
-	pros::MotorGroup right_mg({-4, 5, -6});  // Creates a motor group with forwards port 5 and reversed ports 4 & 6
+	pros::MotorGroup left_mg({1, -2, 3});    // Left drive (reverse port 2)
+	pros::MotorGroup right_mg({-4, 5, -6});  // Right drive (reverse ports 4 & 6)
+	pros::Motor top_roller(-kTopRollerPort, pros::MotorGears::green);
+pros::Motor conveyor(kConveyorPort, pros::MotorGears::green);
 
 
 	while (true) {
@@ -89,6 +130,19 @@ void opcontrol() {
 		int turn = master.get_analog(ANALOG_RIGHT_X);  // Gets the turn left/right from right joystick
 		left_mg.move(dir - turn);                      // Sets left motor voltage
 		right_mg.move(dir + turn);                     // Sets right motor voltage
-		pros::delay(20);                               // Run for 20 ms then update
+
+		// Top roller: L1 intake, L2 reverse
+		int roller_cmd = 0;
+		if (master.get_digital(DIGITAL_L1)) roller_cmd += 1;
+		if (master.get_digital(DIGITAL_L2)) roller_cmd -= 1;
+		top_roller.move(roller_cmd * kRollerSpeed);
+
+		// Conveyor: R1 forward, R2 reverse
+		int conveyor_cmd = 0;
+		if (master.get_digital(DIGITAL_R1)) conveyor_cmd += 1;
+		if (master.get_digital(DIGITAL_R2)) conveyor_cmd -= 1;
+		conveyor.move(conveyor_cmd * kConveyorSpeed);
+
+		pros::delay(20);  // Run for 20 ms then update
 	}
 }
