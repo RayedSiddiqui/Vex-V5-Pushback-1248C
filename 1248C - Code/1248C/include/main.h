@@ -1,3 +1,6 @@
+#pragma once
+#include "api.h"
+
 /**
  * \file main.h
  *
