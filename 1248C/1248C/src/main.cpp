@@ -18,20 +18,20 @@ inline pros::Motor top_roller(20, pros::v5::MotorGear::green);
 #define intake_on() do { conveyor_on(); top_roller_on(); } while(0)
 
 // Store match loads (conveyor on, top roller in reverse at half speed)
-#define store_match_load() do { conveyor.move(120); top_roller.move(-55); } while(0)
+#define store_match_load() do { conveyor.move(120); top_roller.move(55); } while(0)
 
-
+// A simple autonomous function that drives forward for a short time
 void dummy_auto() {
 	pros::MotorGroup left_mg({1, 2, -3});
 	pros::MotorGroup right_mg({-4, 5, -6});
 
+	// Drive for 100ms to approximate 2 inches
 	left_mg.move(100);
 	right_mg.move(100);
-
-	pros::delay(200);  // Drive for 400ms to approximate 2 inches
-
+	pros::delay(200);  
 	left_mg.move(0);
 	right_mg.move(0);
+
 }
 
 /**
@@ -116,11 +116,12 @@ void opcontrol() {
 	pros::MotorGroup right_mg({-4, 5, -6});  // Creates a motor group with forwards port 5 and reversed ports 4 & 6
 	pros::ADIDigitalOut mid_score_solenoid('A');
 
-	// // State variables for toggles
+	// State variables for toggles
 	bool conveyor_enabled = false;
 	bool roller_enabled = false;
 	bool match_load_enabled = false;
 	bool mid_score_enabled = false;
+	bool shoot_enabled = false;
 
 	mid_score_solenoid.set_value(true);
 
@@ -129,13 +130,13 @@ void opcontrol() {
 	 	                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
 	 	                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);  // Prints status of the emulated screen LCDs
 
-	// 	// Arcade control scheme
+	 	// Arcade control scheme
 	 	int dir = master.get_analog(ANALOG_LEFT_Y);    // Gets amount forward/backward from left joystick
 		int turn = master.get_analog(ANALOG_RIGHT_X);  // Gets the turn left/right from right joystick
 		left_mg.move(dir - turn);                      // Sets left motor voltage
 		right_mg.move(dir + turn);                     // Sets right motor voltage
 
-	// 	// R1: Toggle conveyor on/off
+	 	// R1: Toggle conveyor on/off
 	 	if (master.get_digital_new_press(DIGITAL_R1)) {
 	 		conveyor_enabled = !conveyor_enabled;
 	 		if (conveyor_enabled)
@@ -144,7 +145,7 @@ void opcontrol() {
 	 			conveyor_off();
 	 	}
 
-	// 	// L1: Toggle roller on/off
+	 	// L1: Toggle roller on/off
 	 	if (master.get_digital_new_press(DIGITAL_L1)) {
 	 		roller_enabled = !roller_enabled;
 	 		if (roller_enabled)
@@ -153,7 +154,7 @@ void opcontrol() {
 	 			top_roller_off();
 	 	}
 
-	// 	// R2: Reverse conveyor and turn off
+	 	// R2: Reverse conveyor and turn off
 	 	if (master.get_digital_new_press(DIGITAL_R2)) {
 	 		conveyor_reverse();
 	 		pros::delay(200);  // Reverse for 200ms
@@ -161,7 +162,7 @@ void opcontrol() {
 	 		conveyor_enabled = false;
 	 	}
 
-	// 	// L2: Reverse roller and turn off
+	 	// L2: Reverse roller and turn off
 	 	if (master.get_digital_new_press(DIGITAL_L2)) {
 	 		top_roller_reverse();
 	 		pros::delay(200);  // Reverse for 200ms
@@ -169,8 +170,19 @@ void opcontrol() {
 	 		roller_enabled = false;
 	 	}
 
-	// 	// X: Toggle match loader (store_match_load) on/off
+		// X: "Shoot" button - Toggle on/off
 	 	if (master.get_digital_new_press(DIGITAL_X)) {
+	 		shoot_enabled = !shoot_enabled;
+	 		if (shoot_enabled)
+	 			intake_on();
+	 		else {
+	 			conveyor_off();
+	 			top_roller_off();
+	 		}
+		}
+
+	 	// B: Toggle match loader (store_match_load) on/off
+	 	if (master.get_digital_new_press(DIGITAL_B)) {
 	 		match_load_enabled = !match_load_enabled;
 	 		if (match_load_enabled)
 	 			store_match_load();
@@ -180,7 +192,7 @@ void opcontrol() {
 	 		}
 	 	}
 		
-	// 	// A: Middle score pneumatics down/up
+	 	// A: Middle score pneumatics down/up
 	 	if (master.get_digital_new_press(DIGITAL_A)) {
 	 		mid_score_enabled = !mid_score_enabled;
 	 		if (mid_score_enabled)
