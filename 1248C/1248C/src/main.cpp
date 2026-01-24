@@ -44,7 +44,7 @@ void on_center_button() {
  */
 void initialize() {
 	pros::lcd::initialize();
-	pros::lcd::set_text(1, "Hello this is rayed");
+	pros::lcd::set_text(1, "1248C FTW");
 
 	pros::lcd::register_btn1_cb(on_center_button);
 }
@@ -96,12 +96,16 @@ void autonomous() {}
 void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
 	pros::MotorGroup left_mg({1, 2, -3});    // Creates a motor group with forwards ports 1 & 3 and reversed port 2
-	pros::MotorGroup right_mg({4, 5, -6});  // Creates a motor group with forwards port 5 and reversed ports 4 & 6
+	pros::MotorGroup right_mg({-4, 5, -6});  // Creates a motor group with forwards port 5 and reversed ports 4 & 6
+	pros::ADIDigitalOut mid_score_solenoid('A');
 
 	// State variables for toggles
 	bool conveyor_enabled = false;
 	bool roller_enabled = false;
 	bool match_load_enabled = false;
+	bool mid_score_enabled = false;
+
+	mid_score_solenoid.set_value(true);
 
 	while (true) {
 		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
@@ -158,6 +162,17 @@ void opcontrol() {
 				top_roller_off();
 			}
 		}
+		
+		// A: Middle score pneumatics down/up
+		if (master.get_digital_new_press(DIGITAL_A)) {
+			mid_score_enabled = !mid_score_enabled;
+			if (mid_score_enabled)
+				mid_score_solenoid.set_value(false);
+			else {
+				mid_score_solenoid.set_value(true);
+			}
+		}
+		
 
 		pros::delay(20);  // Run for 20 ms then update
 	}
