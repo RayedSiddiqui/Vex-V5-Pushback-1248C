@@ -1,8 +1,8 @@
 #include "main.h"
 
 // Conveyor and top roller motors
-inline pros::Motor conveyor(11, pros::v5::MotorGear::green);
-inline pros::Motor top_roller(20, pros::v5::MotorGear::green);
+inline pros::Motor conveyor(20, pros::v5::MotorGear::green);
+inline pros::Motor top_roller(11, pros::v5::MotorGear::green);
 
 // Conveyor control macros
 #define conveyor_on() conveyor.move(120)
@@ -12,7 +12,11 @@ inline pros::Motor top_roller(20, pros::v5::MotorGear::green);
 // Top roller control macros
 #define top_roller_on() top_roller.move(-120)
 #define top_roller_off() top_roller.move(0)
-#define top_roller_reverse() top_roller.move(120)
+#define top_roller_reverse() top_roller.move(90)
+
+// Match loader solenoids (ports G and H)
+pros::ADIDigitalOut match_loader_solenoid_g('G');
+pros::ADIDigitalOut match_loader_solenoid_h('H');
 
 // Turn both on
 #define intake_on() do { conveyor_on(); top_roller_on(); } while(0)
@@ -22,16 +26,20 @@ inline pros::Motor top_roller(20, pros::v5::MotorGear::green);
 
 // A simple autonomous function that drives forward for a short time
 void dummy_auto() {
-	pros::MotorGroup left_mg({1, 2, -3});
-	pros::MotorGroup right_mg({-4, 5, -6});
+	pros::MotorGroup left_mg({19, 18, -17});
+	pros::MotorGroup right_mg({-13, 14, -12});
 
 	// Drive for 100ms to approximate 2 inches
-	left_mg.move(100);
-	right_mg.move(100);
-	pros::delay(200);  
+	top_roller_reverse();
+	conveyor_on();
+	left_mg.move(-100);
+	right_mg.move(-100);
+	pros::delay(300);  
 	left_mg.move(0);
 	right_mg.move(0);
-
+	top_roller_off();
+	conveyor_off();
+	
 }
 
 /**
@@ -114,7 +122,6 @@ void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
 	pros::MotorGroup left_mg({1, 2, -3});    // Creates a motor group with forwards ports 1 & 3 and reversed port 2
 	pros::MotorGroup right_mg({-4, 5, -6});  // Creates a motor group with forwards port 5 and reversed ports 4 & 6
-	pros::ADIDigitalOut mid_score_solenoid('A');
 
 	// State variables for toggles
 	bool conveyor_enabled = false;
@@ -123,7 +130,8 @@ void opcontrol() {
 	bool mid_score_enabled = false;
 	bool shoot_enabled = false;
 
-	mid_score_solenoid.set_value(true);
+	match_loader_solenoid_g.set_value(false);
+	match_loader_solenoid_h.set_value(false);
 
 	while (true) {
 		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
@@ -192,14 +200,16 @@ void opcontrol() {
 	 		}
 	 	}
 		
-	 	// A: Middle score pneumatics down/up
+	 	// A: Match Loader Pneumatics down/up
 	 	if (master.get_digital_new_press(DIGITAL_A)) {
 	 		mid_score_enabled = !mid_score_enabled;
-	 		if (mid_score_enabled)
-	 			mid_score_solenoid.set_value(false);
-	 		else {
-	 			mid_score_solenoid.set_value(true);
-	 		}
+			if (mid_score_enabled) {
+				match_loader_solenoid_g.set_value(false);
+				match_loader_solenoid_h.set_value(false);
+			} else {
+				match_loader_solenoid_g.set_value(true);
+				match_loader_solenoid_h.set_value(true);
+			}
 	 	}
 		
 

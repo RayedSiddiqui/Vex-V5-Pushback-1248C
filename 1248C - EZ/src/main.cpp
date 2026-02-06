@@ -9,7 +9,7 @@
 ez::Drive chassis(
     // These are your drive motors, the first motor is used for sensing!
     {1, 2, -3},     // Left Chassis Ports (negative port will reverse it!)
-    {4, 5, -6},  // Right Chassis Ports (negative port will reverse it!)
+    {-4, 5, -6},  // Right Chassis Ports (negative port will reverse it!)
 
     7,      // IMU Port
     3.25,  // Wheel Diameter (Remember, 4" wheels without screw holes are actually 4.125!)
@@ -22,6 +22,47 @@ ez::Drive chassis(
 // - `4.0` is the distance from the center of the wheel to the center of the robot
 // ez::tracking_wheel horiz_tracker(8, 2.75, 4.0);  // This tracking wheel is perpendicular to the drive wheels
 // ez::tracking_wheel vert_tracker(9, 2.75, 4.0);   // This tracking wheel is parallel to the drive wheels
+
+// Conveyor and top roller motors
+inline pros::Motor conveyor(11, pros::v5::MotorGear::green);
+inline pros::Motor top_roller(20, pros::v5::MotorGear::green);
+
+// Pneumatics solenoid for mid score
+inline pros::adi::DigitalOut mid_score_solenoid('A');
+
+// Conveyor control macros
+#define conveyor_on() conveyor.move(120)
+#define conveyor_off() conveyor.move(0)
+#define conveyor_reverse() conveyor.move(-120)
+
+// Top roller control macros
+#define top_roller_on() top_roller.move(-120)
+#define top_roller_off() top_roller.move(0)
+#define top_roller_reverse() top_roller.move(90)
+
+// Turn both on
+#define intake_on() do { conveyor_on(); top_roller_on(); } while(0)
+
+// Store match loads (conveyor on, top roller in reverse at half speed)
+#define store_match_load() do { conveyor.move(120); top_roller.move(55); } while(0)
+
+// A simple autonomous function that drives forward for a short time
+void dummy_auto() {
+	pros::MotorGroup left_mg({1, 2, -3});
+	pros::MotorGroup right_mg({-4, 5, -6});
+
+	// Drive for 100ms to approximate 2 inches
+	top_roller_reverse();
+	conveyor_on();
+	left_mg.move(-100);
+	right_mg.move(-100);
+	pros::delay(300);  
+	left_mg.move(0);
+	right_mg.move(0);
+	top_roller_off();
+	conveyor_off();
+	
+}
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -246,62 +287,85 @@ void opcontrol() {
   bool conveyor_enabled = false;
   bool roller_enabled = false;
   bool match_load_enabled = false;
+  bool mid_score_enabled = false;
+  bool shoot_enabled = false;
+
 
   while (true) {
     // Gives you some extras to make EZ-Template ezier
     ez_template_extras();
 
-    chassis.opcontrol_tank();  // Tank control
-    // chassis.opcontrol_arcade_standard(ez::SPLIT);   // Standard split arcade
+    // chassis.opcontrol_tank();  // Tank control
+    chassis.opcontrol_arcade_standard(ez::SPLIT);   // Standard split arcade
     // chassis.opcontrol_arcade_standard(ez::SINGLE);  // Standard single arcade
     // chassis.opcontrol_arcade_flipped(ez::SPLIT);    // Flipped split arcade
     // chassis.opcontrol_arcade_flipped(ez::SINGLE);   // Flipped single arcade
 
     // R1: Toggle conveyor on/off
-    if (master.get_digital_new_press(DIGITAL_R1)) {
-      conveyor_enabled = !conveyor_enabled;
-      if (conveyor_enabled)
-        conveyor_on();
-      else
-        conveyor_off();
-    }
+	 	if (master.get_digital_new_press(DIGITAL_R1)) {
+	 		conveyor_enabled = !conveyor_enabled;
+	 		if (conveyor_enabled)
+	 			conveyor_on();
+	 		else
+	 			conveyor_off();
+	 	}
 
-    // L1: Toggle roller on/off
-    if (master.get_digital_new_press(DIGITAL_L1)) {
-      roller_enabled = !roller_enabled;
-      if (roller_enabled)
-        top_roller_on();
-      else
-        top_roller_off();
-    }
+	 	// L1: Toggle roller on/off
+	 	if (master.get_digital_new_press(DIGITAL_L1)) {
+	 		roller_enabled = !roller_enabled;
+	 		if (roller_enabled)
+	 			top_roller_on();
+	 		else
+	 			top_roller_off();
+	 	}
 
-    // R2: Reverse conveyor and turn off
-    if (master.get_digital_new_press(DIGITAL_R2)) {
-      conveyor_reverse();
-      pros::delay(200);  // Reverse for 200ms
-      conveyor_off();
-      conveyor_enabled = false;
-    }
+	 	// R2: Reverse conveyor and turn off
+	 	if (master.get_digital_new_press(DIGITAL_R2)) {
+	 		conveyor_reverse();
+	 		pros::delay(200);  // Reverse for 200ms
+	 		conveyor_off();
+	 		conveyor_enabled = false;
+	 	}
 
-    // L2: Reverse roller and turn off
-    if (master.get_digital_new_press(DIGITAL_L2)) {
-      top_roller_reverse();
-      pros::delay(200);  // Reverse for 200ms
-      top_roller_off();
-      roller_enabled = false;
-    }
+	 	// L2: Reverse roller and turn off
+	 	if (master.get_digital_new_press(DIGITAL_L2)) {
+	 		top_roller_reverse();
+	 		pros::delay(200);  // Reverse for 200ms
+	 		top_roller_off();
+	 		roller_enabled = false;
+	 	}
 
-    // X: Toggle match loader (store_match_load) on/off
-    if (master.get_digital_new_press(DIGITAL_X)) {
-      match_load_enabled = !match_load_enabled;
-      if (match_load_enabled)
-        store_match_load();
-      else {
-        conveyor_off();
-        top_roller_off();
-      }
-    }
+		// X: "Shoot" button - Toggle on/off
+	 	if (master.get_digital_new_press(DIGITAL_X)) {
+	 		shoot_enabled = !shoot_enabled;
+	 		if (shoot_enabled)
+	 			intake_on();
+	 		else {
+	 			conveyor_off();
+	 			top_roller_off();
+	 		}
+		}
 
-    pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
+	 	// B: Toggle match loader (store_match_load) on/off
+	 	if (master.get_digital_new_press(DIGITAL_B)) {
+	 		match_load_enabled = !match_load_enabled;
+	 		if (match_load_enabled)
+	 			store_match_load();
+	 		else {
+	 			conveyor_off();
+	 			top_roller_off();
+	 		}
+	 	}
+		
+	 	// A: Middle score pneumatics down/up
+	 	if (master.get_digital_new_press(DIGITAL_A)) {
+	 		mid_score_enabled = !mid_score_enabled;
+	 		if (mid_score_enabled)
+	 			mid_score_solenoid.set_value(false);
+	 		else {
+	 			mid_score_solenoid.set_value(true);
+	 		}
+	 	}
+			  pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
   }
 }
