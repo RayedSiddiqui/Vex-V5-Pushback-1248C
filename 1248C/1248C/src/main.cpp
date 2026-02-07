@@ -15,8 +15,8 @@ inline pros::Motor top_roller(11, pros::v5::MotorGear::green);
 #define top_roller_reverse() top_roller.move(90)
 
 // Match loader solenoids (ports G and H)
-pros::ADIDigitalOut match_loader_solenoid_g('G');
-pros::ADIDigitalOut match_loader_solenoid_h('H');
+pros::ADIDigitalOut descorer('G');
+pros::ADIDigitalOut match_loader_solenoid('H');
 
 // Turn both on
 #define intake_on() do { conveyor_on(); top_roller_on(); } while(0)
@@ -66,7 +66,7 @@ void on_center_button() {
  */
 void initialize() {
 	pros::lcd::initialize();
-	pros::lcd::set_text(1, "1248C FTW");
+	pros::lcd::set_text(1, "Rayed FTW");
 
 	pros::lcd::register_btn1_cb(on_center_button);
 }
@@ -120,18 +120,19 @@ void autonomous() {
 void opcontrol() {
 	
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::MotorGroup left_mg({1, 2, -3});    // Creates a motor group with forwards ports 1 & 3 and reversed port 2
-	pros::MotorGroup right_mg({-4, 5, -6});  // Creates a motor group with forwards port 5 and reversed ports 4 & 6
+	pros::MotorGroup left_mg({19, 18, 17});    // Creates a motor group with forwards ports 1 & 3 and reversed port 2
+	pros::MotorGroup right_mg({-13, -14, 12});  // Creates a motor group with forwards port 5 and reversed ports 4 & 6
 
 	// State variables for toggles
 	bool conveyor_enabled = false;
 	bool roller_enabled = false;
 	bool match_load_enabled = false;
-	bool mid_score_enabled = false;
+	bool match_loader_solenoid_enable = false;
 	bool shoot_enabled = false;
+	bool descorer_enabled = false;
 
-	match_loader_solenoid_g.set_value(false);
-	match_loader_solenoid_h.set_value(false);
+	match_loader_solenoid.set_value(false);
+	descorer.set_value(false);
 
 	while (true) {
 		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
@@ -200,19 +201,17 @@ void opcontrol() {
 	 		}
 	 	}
 		
-	 	// A: Match Loader Pneumatics down/up
-	 	if (master.get_digital_new_press(DIGITAL_A)) {
-	 		mid_score_enabled = !mid_score_enabled;
-			if (mid_score_enabled) {
-				match_loader_solenoid_g.set_value(false);
-				match_loader_solenoid_h.set_value(false);
-			} else {
-				match_loader_solenoid_g.set_value(true);
-				match_loader_solenoid_h.set_value(true);
-			}
-	 	}
-		
+		// A: Toggle match loader down/up
+		if (master.get_digital_new_press(DIGITAL_A)) {
+			match_loader_solenoid_enable = !match_loader_solenoid_enable;
+			match_loader_solenoid.set_value(match_loader_solenoid_enable);
+		}
 
+		// Y: Descorer down/up
+		if (master.get_digital_new_press(DIGITAL_Y)) {
+			descorer_enabled = !descorer_enabled;
+			descorer.set_value(descorer_enabled);
+		}
 	 	pros::delay(20);  // Run for 20 ms then update
 	 }
 }
