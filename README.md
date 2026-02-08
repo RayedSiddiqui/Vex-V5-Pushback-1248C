@@ -1,4 +1,4 @@
-# VEX Robotics Team [TEAM NUMBER] — Code Repository
+# VEX Robotics Team 1248c — Code Repository
 
 Welcome to the official GitHub repository for **VEX Robotics Team 1248c**!  
 This repo contains the code, documentation, and resources used for building and programming our competition robot.
