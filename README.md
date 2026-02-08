@@ -25,7 +25,6 @@ We use:
 
 ## Repository Structure
 
-```bash
 ├── src/              # Main robot code
 ├── include/          # Header files (if using PROS)
 ├── driver-control/   # Driver control logic
