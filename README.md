@@ -17,8 +17,8 @@ Our goal is to design, build, and program competitive robots while learning engi
 We use:
 
 - **VEX V5 System**
-- **PROS
-- **C++ 
+- **PROS**
+- **C++**
 - **Git + GitHub** for version control
 
 ---
