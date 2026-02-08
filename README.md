@@ -7,7 +7,7 @@ This repo contains the code, documentation, and resources used for building and 
 
 ## About Our Team
 
-We are **Team [1248c]**, a VEX Robotics Competition team from **[Lakeside School]**.  
+We are **Team 1248c**, a VEX Robotics Competition team from **Lakeside School**.  
 Our goal is to design, build, and program competitive robots while learning engineering, coding, and teamwork.
 
 ---
