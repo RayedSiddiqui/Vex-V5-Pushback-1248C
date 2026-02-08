@@ -23,10 +23,17 @@ We use:
 
 ---
 
-## Repository Structure
+## Contributors/Team Members 2025-2026
 
-├── src/              # Main robot code
-├── include/          # Header files (if using PROS)
-├── driver-control/   # Driver control logic
-└── README.md         # You are here!
+Kai \
+Filmona \
+Henry \
+Rayed \
+Dominic \
+Yafet \
+Simran \
+Alexa \
+Isabel \
+Soham
+
 
