@@ -1,7 +1,7 @@
 {
   "py/object": "pros.conductor.project.Project",
   "py/state": {
-    "project_name": "1248C - Henry ",
+    "project_name": "1248C - Hen/Sim",
     "target": "v5",
     "templates": {
       "kernel": {
@@ -593,7 +593,7 @@
     },
     "upload_options": {
       "icon": "alien",
-      "slot": 3
+      "slot": 2
     },
     "use_early_access": false
   }
