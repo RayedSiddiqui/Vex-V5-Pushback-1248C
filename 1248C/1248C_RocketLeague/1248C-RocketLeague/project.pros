@@ -592,8 +592,8 @@
       }
     },
     "upload_options": {
-      "icon": "pros",
-      "slot": 1
+      "icon": "X",
+      "slot": 3
     },
     "use_early_access": false
   }

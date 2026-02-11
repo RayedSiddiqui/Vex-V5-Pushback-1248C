@@ -120,7 +120,7 @@ void autonomous() {
 void opcontrol() {
 	
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::MotorGroup left_mg({19, 18, 17});    // Creates a motor group with forwards ports 1 & 3 and reversed port 2
+	pros::MotorGroup left_mg({-16, 18, 17});    // Creates a motor group with forwards ports 1 & 3 and reversed port 2
 	pros::MotorGroup right_mg({-13, -14, 12});  // Creates a motor group with forwards port 5 and reversed ports 4 & 6
 
 	// State variables for toggles
@@ -191,7 +191,7 @@ void opcontrol() {
 	 		}
 		}
 
-	 	// B: Toggle match loader (store_match_load) on/off
+	 	// B: Toggle loader (store_match_load) on/off
 	 	if (master.get_digital_new_press(DIGITAL_B)) {
 	 		match_load_enabled = !match_load_enabled;
 	 		if (match_load_enabled)

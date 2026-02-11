@@ -120,7 +120,7 @@ void autonomous() {
 void opcontrol() {
 	
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::MotorGroup left_mg({19, 18, 17});    // Creates a motor group with forwards ports 1 & 3 and reversed port 2
+	pros::MotorGroup left_mg({-16, 18, 17});    // Creates a motor group with forwards ports 1 & 3 and reversed port 2
 	pros::MotorGroup right_mg({-13, -14, 12});  // Creates a motor group with forwards port 5 and reversed ports 4 & 6
 
 	// State variables for toggles
@@ -140,17 +140,18 @@ void opcontrol() {
 	 	                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);  // Prints status of the emulated screen LCDs
 
 	 	// Rocket League driving control scheme
-		int throttle = master.get_digital_new_press(DIGITAL_L2) - master.get_digital_new_press(DIGITAL_R2);
+		int raw_throttle = master.get_digital(DIGITAL_R2) - master.get_digital(DIGITAL_L2);
+		int throttle = raw_throttle * 127;  // Scale to motor range
 		int turn = master.get_analog(ANALOG_LEFT_X);   // Left joystick X for turning
 		int conveyor_speed = master.get_analog(ANALOG_RIGHT_Y);  // Right joystick Y for conveyor
 
 		turn = turn * 0.5;  // Reduces turn value for easier control
 		left_mg.move(throttle - turn);      // Left motors: throttle minus turn
 		right_mg.move(throttle + turn);     // Right motors: throttle plus turn
-		conveyor.move(conveyor_speed);      // Conveyor controlled by right joystick
+		conveyor.move(conveyor_speed);      // Conveyor controlled by right joystick 
 
-		// Right Arrow: Loading toggle - Toggle on/off
-	 	if (master.get_digital_new_press(DIGITAL_RIGHT)) {
+		//A: Loading toggle - Toggle on/off
+	 	if (master.get_digital_new_press(DIGITAL_A)) {
 	 		match_load_enabled = !match_load_enabled;
 	 		if (match_load_enabled)
 	 			store_match_load();
@@ -160,8 +161,8 @@ void opcontrol() {
 	 		}
 	 	}
 
-		// B: "Shoot" button - Toggle on/off
-	 	if (master.get_digital_new_press(DIGITAL_B)) {
+		// X: "Shoot" button - Toggle on/off
+	 	if (master.get_digital_new_press(DIGITAL_X)) {
 	 		shoot_enabled = !shoot_enabled;
 	 		if (shoot_enabled)
 	 			intake_on();
@@ -171,14 +172,14 @@ void opcontrol() {
 	 		}
 		}
 		
-		// L1: Toggle match loader down/up
-		if (master.get_digital_new_press(DIGITAL_L1)) {
+		// R1: Toggle match loader down/up
+		if (master.get_digital_new_press(DIGITAL_R1)) {
 			match_loader_solenoid_enable = !match_loader_solenoid_enable;
 			match_loader_solenoid.set_value(match_loader_solenoid_enable);
 		}
 
-		// R1: Descorer down/up
-		if (master.get_digital_new_press(DIGITAL_R1)) {
+		// L1: Descorer down/up
+		if (master.get_digital_new_press(DIGITAL_L1)) {
 			descorer_enabled = !descorer_enabled;
 			descorer.set_value(descorer_enabled);
 		}
