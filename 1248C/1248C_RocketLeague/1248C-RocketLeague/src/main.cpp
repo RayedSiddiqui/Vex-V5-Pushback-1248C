@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cstdlib>
 
+
 // Conveyor and top roller motors
 inline pros::Motor conveyor(20, pros::v5::MotorGear::green);
 inline pros::Motor top_roller(11, pros::v5::MotorGear::green);
@@ -15,22 +16,8 @@ inline pros::Motor top_roller(11, pros::v5::MotorGear::green);
 #define top_roller_on() top_roller.move(-120)
 #define top_roller_off() top_roller.move(0)
 #define top_roller_reverse() top_roller.move(90)
-
-// Match loader solenoids (ports G and H)
-pros::ADIDigitalOut descorer('G');
-pros::ADIDigitalOut match_loader_solenoid('H');
-
-// Turn both on
-#define intake_on() do { conveyor_on(); top_roller_on(); } while(0)
-
-// Store match loads (conveyor on, top roller in reverse at half speed)
-#define store_match_load() do { conveyor.move(120); top_roller.move(55); } while(0)
-
-// A simple autonomous function that drives forward for a short time
-void skeleton_auto() {
-	pros::MotorGroup left_mg({-16, 18, -17});
-	pros::MotorGroup right_mg({-13, 14, -12});
-	#define turnright() do { left_mg.move(-50); right_mg.move(50); pros::delay(50); } while(0)
+// autonomous movement macros
+#define turnright() do { left_mg.move(-50); right_mg.move(50); pros::delay(50); } while(0)
 	#define turnleft() do { left_mg.move(50); right_mg.move(-50); pros::delay(50); } while(0)
 	#define forward(x) do { left_mg.move(-x); right_mg.move(-x); pros::delay(50); } while(0)
 	#define backward(x) do { left_mg.move(x); right_mg.move(x); pros::delay(50); } while(0)
@@ -72,7 +59,28 @@ void skeleton_auto() {
 	forward(50); \
 	stop();\
 	turnleft();} while(0)
+	
+	#define traverse_match_load() do {turnright(); \
+	stop(); \
+	forward(500); \
+	stop();\
+	turnleft();} while(0)
 
+// Match loader solenoids (ports G and H)
+pros::ADIDigitalOut descorer('G');
+pros::ADIDigitalOut match_loader_solenoid('H');
+
+// Turn both on
+#define intake_on() do { conveyor_on(); top_roller_on(); } while(0)
+
+// Store match loads (conveyor on, top roller in reverse at half speed)
+#define store_match_load() do { conveyor.move(120); top_roller.move(55); } while(0)
+
+// A simple autonomous function that drives forward for a short time
+void skeleton_auto() {
+	pros::MotorGroup left_mg({-16, 18, -17});
+	pros::MotorGroup right_mg({-13, 14, -12});
+	
 
 	//Still need first move here.
 
@@ -88,17 +96,14 @@ void skeleton_auto() {
 	load_score(); //Second Load and Score
 
 
-	turnright();
-	stop();
-	forward(500);
-	stop();
-	turnleft();
+	traverse_match_load();
 	
 	load_score();  //Third Load and Score
 	
 	traverse_long_goal();
 	
 	load_score();  //Fourth Load and Score
+
 
 	
 
