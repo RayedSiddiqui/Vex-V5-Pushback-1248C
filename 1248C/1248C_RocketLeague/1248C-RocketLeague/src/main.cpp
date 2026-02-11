@@ -1,4 +1,6 @@
 #include "main.h"
+#include <algorithm>
+#include <cstdlib>
 
 // Conveyor and top roller motors
 inline pros::Motor conveyor(20, pros::v5::MotorGear::green);
@@ -25,9 +27,37 @@ pros::ADIDigitalOut match_loader_solenoid('H');
 #define store_match_load() do { conveyor.move(120); top_roller.move(55); } while(0)
 
 // A simple autonomous function that drives forward for a short time
-void dummy_auto() {
 	pros::MotorGroup left_mg({-16, 18, -17});
 	pros::MotorGroup right_mg({-13, 14, -12});
+	#define turnleft() do { left_mg.move(50); right_mg.move(-50); pros::delay(50); } while(0)
+	#define forward(x) do { left_mg.move(-x); right_mg.move(-x); pros::delay(50); } while(0)
+	#define backward(x) do { left_mg.move(x); right_mg.move(x); pros::delay(50); } while(0)
+	#define stop() do { left_mg.move(0); right_mg.move(0); pros::delay(50); } while(0)
+	#define score() do { top_roller_on(); pros::delay(300); top_roller_off(); } while(0)
+	#define jiggle() do { left_mg.move(-50); right_mg.move(-50); pros::delay(100); left_mg.move(50); right_mg.move(50); pros::delay(100); } while(0)
+	#define lower_match_loader() do { match_loader_solenoid.set_value(true); pros::delay(100); } while(0)
+	#define raise_match_loader() do { match_loader_solenoid.set_value(false); pros::delay(100); } while(0)
+	
+	#define load_score() do { \
+	stop();	\
+	lower_match_loader(); \
+	backward(100);\
+	stop();\
+	pros::delay(500); \
+	jiggle(); \
+	jiggle(); \
+	forward(100); \ 
+	stop(); \
+	raise_match_loader(); \
+	forward(200); \
+	stop(); \
+	score(); \
+	backward(50); \
+	stop(); } while(0)
+	#define traverse_long_goal() do {turnright(); \
+	forward(50); \
+	stop(); \
+	turnleft(); \
 
 	// Drive for 100ms to approximate 2 inches
 	top_roller_reverse();
