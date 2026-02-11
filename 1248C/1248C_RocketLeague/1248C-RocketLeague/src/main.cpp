@@ -27,8 +27,10 @@ pros::ADIDigitalOut match_loader_solenoid('H');
 #define store_match_load() do { conveyor.move(120); top_roller.move(55); } while(0)
 
 // A simple autonomous function that drives forward for a short time
+void skeleton_auto() {
 	pros::MotorGroup left_mg({-16, 18, -17});
 	pros::MotorGroup right_mg({-13, 14, -12});
+	#define turnright() do { left_mg.move(-50); right_mg.move(50); pros::delay(50); } while(0)
 	#define turnleft() do { left_mg.move(50); right_mg.move(-50); pros::delay(50); } while(0)
 	#define forward(x) do { left_mg.move(-x); right_mg.move(-x); pros::delay(50); } while(0)
 	#define backward(x) do { left_mg.move(x); right_mg.move(x); pros::delay(50); } while(0)
@@ -39,6 +41,9 @@ pros::ADIDigitalOut match_loader_solenoid('H');
 	#define raise_match_loader() do { match_loader_solenoid.set_value(false); pros::delay(100); } while(0)
 	
 	#define load_score() do { \
+	top_roller_reverse(); \
+	conveyor_on(); \
+	backward(200); \
 	stop();	\
 	lower_match_loader(); \
 	backward(100);\
@@ -54,22 +59,54 @@ pros::ADIDigitalOut match_loader_solenoid('H');
 	score(); \
 	backward(50); \
 	stop(); } while(0)
+
 	#define traverse_long_goal() do {turnright(); \
 	forward(50); \
 	stop(); \
 	turnleft(); \
+	stop(); \
+	forward(500); \
+	stop(); \
+	turnleft(); \
+	stop(); \
+	forward(50); \
+	stop();\
+	turnleft();} while(0)
 
-	// Drive for 100ms to approximate 2 inches
-	top_roller_reverse();
-	conveyor_on();
-	left_mg.move(-100);
-	right_mg.move(-100);
-	pros::delay(300);  
-	left_mg.move(0);
-	right_mg.move(0);
-	top_roller_off();
-	conveyor_off();
+
+	//Still need first move here.
+
+	forward(300);
+	turnleft();
+	stop();
+
+
+	load_score(); //First Load
+
+	traverse_long_goal();
+	 
+	load_score(); //Second Load and Score
+
+
+	turnright();
+	stop();
+	forward(500);
+	stop();
+	turnleft();
 	
+	load_score();  //Third Load and Score
+	
+	traverse_long_goal();
+	
+	load_score();  //Fourth Load and Score
+
+	
+
+
+
+
+
+
 }
 
 /**
@@ -131,7 +168,7 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-	dummy_auto();
+	skeleton_auto();
 }
 
 /**
@@ -170,14 +207,41 @@ void opcontrol() {
 	 	                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);  // Prints status of the emulated screen LCDs
 
 	 	// Rocket League driving control scheme
+		static int current_throttle = 0;  // Track previous throttle value
 		int raw_throttle = master.get_digital(DIGITAL_R2) - master.get_digital(DIGITAL_L2);
-		int throttle = raw_throttle * 127;  // Scale to motor range
+		int target_throttle = raw_throttle * 127;
+
+		// Smoothly ramp to target
+		if (current_throttle < target_throttle) {
+			current_throttle += 8;  // Accelerate up
+			if (current_throttle > target_throttle) current_throttle = target_throttle;
+		} else if (current_throttle > target_throttle) {
+			current_throttle -= 8;  // Decelerate/reverse smoothly
+			if (current_throttle < target_throttle) current_throttle = target_throttle;
+		}
+
+		int throttle = current_throttle;
 		int turn = master.get_analog(ANALOG_LEFT_X);   // Left joystick X for turning
 		int conveyor_speed = master.get_analog(ANALOG_RIGHT_Y);  // Right joystick Y for conveyor
+		turn /= 2;  // Reduces turn value for easier control
 
-		turn = turn * 0.5;  // Reduces turn value for easier control
-		left_mg.move(throttle - turn);      // Left motors: throttle minus turn
-		right_mg.move(throttle + turn);     // Right motors: throttle plus turn
+		if (std::abs(turn) <= 3) {
+			turn = 0;  // Deadband to prevent drift when driving straight
+		}
+
+	
+		int left = throttle - turn;      // Left motors: throttle minus turn
+		int right = throttle + turn;     // Right motors: throttle plus turn
+
+		int max_mag = std::max(std::abs(left), std::abs(right));
+		if (max_mag > 127) {
+			float scale = 127.0f / max_mag;
+			left = static_cast<int>(left * scale);
+			right = static_cast<int>(right * scale);
+		}
+
+		left_mg.move(left);
+		right_mg.move(right);
 		conveyor.move(conveyor_speed);      // Conveyor controlled by right joystick 
 
 		//A: Loading toggle - Toggle on/off
