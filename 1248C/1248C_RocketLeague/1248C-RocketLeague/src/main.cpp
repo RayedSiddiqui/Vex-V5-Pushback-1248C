@@ -26,7 +26,7 @@ pros::ADIDigitalOut match_loader_solenoid('H');
 
 // A simple autonomous function that drives forward for a short time
 void dummy_auto() {
-	pros::MotorGroup left_mg({19, 18, -17});
+	pros::MotorGroup left_mg({-16, 18, -17});
 	pros::MotorGroup right_mg({-13, 14, -12});
 
 	// Drive for 100ms to approximate 2 inches
