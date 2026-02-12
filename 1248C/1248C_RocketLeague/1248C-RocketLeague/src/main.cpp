@@ -7,6 +7,10 @@
 inline pros::Motor conveyor(20, pros::v5::MotorGear::green);
 inline pros::Motor top_roller(11, pros::v5::MotorGear::green);
 
+// Drivetrain motor groups (match opcontrol directions)
+inline pros::MotorGroup left_mg({16, 18, 17});
+inline pros::MotorGroup right_mg({13, 14, 12});
+
 // Conveyor control macros
 #define conveyor_on() conveyor.move(120)
 #define conveyor_off() conveyor.move(0)
@@ -16,11 +20,12 @@ inline pros::Motor top_roller(11, pros::v5::MotorGear::green);
 #define top_roller_on() top_roller.move(-120)
 #define top_roller_off() top_roller.move(0)
 #define top_roller_reverse() top_roller.move(90)
-// autonomous movement macros
-	#define turnright(x) do { left_mg.move(x); right_mg.move(-x); pros::delay(x);left_mg.move(0);right_mg.move(0); } while(0)
-	#define turnleft(x) do { left_mg.move(-x); right_mg.move(x); pros::delay(x); left_mg.move(0);right_mg.move(0); } while(0)
-	#define forward(x) do { left_mg.move(x); right_mg.move(x); pros::delay(x); left_mg.move(0);right_mg.move(0);} while(0)
-	#define backward(x) do { left_mg.move(-x); right_mg.move(-x); pros::delay(x); } while(0)
+// autonomous movement helper + macros
+	#define drive_ms(l, r, ms) do { left_mg.move(l); right_mg.move(r); pros::delay(ms); left_mg.move(0); right_mg.move(0); } while(0)
+	#define turnright(speed, ms) drive_ms((speed), -(speed), (ms))
+	#define turnleft(speed, ms) drive_ms(-(speed), (speed), (ms))
+	#define forward(speed, ms) drive_ms((speed), (speed), (ms))
+	#define backward(speed, ms) drive_ms(-(speed), -(speed), (ms))
 	#define stop() do { left_mg.move(0); right_mg.move(0); pros::delay(50); } while(0)
 	#define score() do { top_roller_on(); pros::delay(300); top_roller_off(); } while(0)
 	#define jiggle() do { left_mg.move(-50); right_mg.move(-50); pros::delay(100); left_mg.move(50); right_mg.move(50); pros::delay(100); } while(0)
@@ -30,41 +35,41 @@ inline pros::Motor top_roller(11, pros::v5::MotorGear::green);
 	#define load_score() do { \
 	top_roller_reverse(); \
 	conveyor_on(); \
-	backward(200); \
+	backward(90, 200); \
 	stop();	\
 	lower_match_loader(); \
-	backward(100);\
+	backward(90, 100);\
 	stop();\
 	pros::delay(500); \
 	jiggle(); \
 	jiggle(); \
-	forward(100); \ 
+	forward(90, 100); \
 	stop(); \
 	raise_match_loader(); \
-	forward(200); \
+	forward(90, 200); \
 	stop(); \
 	score(); \
-	backward(50); \
+	backward(90, 50); \
 	stop(); } while(0)
 
-	#define traverse_long_goal() do {turnright(90); \
-	forward(50); \
+	#define traverse_long_goal() do {turnright(90, 90); \
+	forward(90, 50); \
 	stop(); \
-	turnleft(90); \
+	turnleft(90, 90); \
 	stop(); \
-	forward(500); \
+	forward(90, 500); \
 	stop(); \
-	turnleft(90); \
+	turnleft(90, 90); \
 	stop(); \
-	forward(50); \
+	forward(90, 50); \
 	stop();\
-	turnleft(90);} while(0)
+	turnleft(90, 90);} while(0)
 	
-	#define traverse_match_load() do {turnright(90); \
+	#define traverse_match_load() do {turnright(90, 90); \
 	stop(); \
-	forward(500); \
+	forward(90, 500); \
 	stop();\
-	turnleft(90);} while(0)
+	turnleft(90, 90);} while(0)
 
 // Match loader solenoids (ports G and H)
 pros::ADIDigitalOut descorer('G');
@@ -78,14 +83,10 @@ pros::ADIDigitalOut match_loader_solenoid('H');
 
 // A simple autonomous function that drives forward for a short time
 void skeleton_auto() {
-	pros::MotorGroup left_mg({16, 18, 17});    // Creates a motor group with forwards ports 1 & 3 and reversed port 2
-	pros::MotorGroup right_mg({13, 14, 12});  // Creates a motor group with forwards port 5 and reversed ports 4 & 6
-	
-
 	//Still need first move here.
 
-	forward(250);
-	turnleft(90);
+	forward(90, 300);
+	turnleft(90, 500);
 	stop();
 
 
@@ -104,13 +105,13 @@ void skeleton_auto() {
 	
 	load_score();  //Fourth Load and Score
 
-	turnright(90);
+	turnright(90, 90);
 	stop();
-	forward(100);
+	forward(90, 100);
 	stop();
-	turnright(90);
+	turnright(90, 90);
 	stop();
-	forward(200);
+	forward(90, 200);
 
 	
 
@@ -199,8 +200,6 @@ void autonomous() {
 void opcontrol() {
 	
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::MotorGroup left_mg({-16, 18, 17});    // Creates a motor group with forwards ports 1 & 3 and reversed port 2
-	pros::MotorGroup right_mg({-13, -14, 12});  // Creates a motor group with forwards port 5 and reversed ports 4 & 6
 
 	// State variables for toggles
 	bool conveyor_enabled = false;
