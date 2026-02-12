@@ -33,43 +33,43 @@ inline pros::MotorGroup right_mg({13, 14, 12});
 	#define raise_match_loader() do { match_loader_solenoid.set_value(false); pros::delay(100); } while(0)
 	
 	#define load_score() do { \
-	top_roller_reverse(); \
-	conveyor_on(); \
-	backward(90, 200); \
-	stop();	\
-	lower_match_loader(); \
-	backward(90, 100);\
-	stop();\
-	pros::delay(500); \
-	jiggle(); \
-	jiggle(); \
-	forward(90, 100); \
-	stop(); \
-	raise_match_loader(); \
-	forward(90, 200); \
-	stop(); \
-	score(); \
-	backward(90, 50); \
-	stop(); } while(0)
+		top_roller_reverse(); \
+		conveyor_on(); \
+		backward(90, 200); \
+		stop();	\
+		lower_match_loader(); \
+		backward(90, 100);\
+		stop();\
+		pros::delay(500); \
+		jiggle(); \
+		jiggle(); \
+		forward(90, 100); \
+		stop(); \
+		raise_match_loader(); \
+		forward(90, 200); \
+		stop(); \
+		score(); \
+		backward(90, 50); \
+		stop(); } while(0)
 
 	#define traverse_long_goal() do {turnright(90, 90); \
-	forward(90, 50); \
-	stop(); \
-	turnleft(90, 90); \
-	stop(); \
-	forward(90, 500); \
-	stop(); \
-	turnleft(90, 90); \
-	stop(); \
-	forward(90, 50); \
-	stop();\
-	turnleft(90, 90);} while(0)
+		forward(90, 50); \
+		stop(); \
+		turnleft(90, 90); \
+		stop(); \
+		forward(90, 500); \
+		stop(); \
+		turnleft(90, 90); \
+		stop(); \
+		forward(90, 50); \
+		stop();\
+		turnleft(90, 90);} while(0)
 	
 	#define traverse_match_load() do {turnright(90, 90); \
-	stop(); \
-	forward(90, 500); \
-	stop();\
-	turnleft(90, 90);} while(0)
+		stop(); \
+		forward(90, 500); \
+		stop();\
+		turnleft(90, 90);} while(0)
 
 // Match loader solenoids (ports G and H)
 pros::ADIDigitalOut descorer('G');
