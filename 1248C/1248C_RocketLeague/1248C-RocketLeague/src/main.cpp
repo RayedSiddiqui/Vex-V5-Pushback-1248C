@@ -17,10 +17,10 @@ inline pros::Motor top_roller(11, pros::v5::MotorGear::green);
 #define top_roller_off() top_roller.move(0)
 #define top_roller_reverse() top_roller.move(90)
 // autonomous movement macros
-#define turnright() do { left_mg.move(-50); right_mg.move(50); pros::delay(50); } while(0)
-	#define turnleft() do { left_mg.move(50); right_mg.move(-50); pros::delay(50); } while(0)
-	#define forward(x) do { left_mg.move(-x); right_mg.move(-x); pros::delay(50); } while(0)
-	#define backward(x) do { left_mg.move(x); right_mg.move(x); pros::delay(50); } while(0)
+	#define turnright(x) do { left_mg.move(x); right_mg.move(-x); pros::delay(x);left_mg.move(0);right_mg.move(0); } while(0)
+	#define turnleft(x) do { left_mg.move(-x); right_mg.move(x); pros::delay(x); left_mg.move(0);right_mg.move(0); } while(0)
+	#define forward(x) do { left_mg.move(x); right_mg.move(x); pros::delay(x); left_mg.move(0);right_mg.move(0);} while(0)
+	#define backward(x) do { left_mg.move(-x); right_mg.move(-x); pros::delay(x); } while(0)
 	#define stop() do { left_mg.move(0); right_mg.move(0); pros::delay(50); } while(0)
 	#define score() do { top_roller_on(); pros::delay(300); top_roller_off(); } while(0)
 	#define jiggle() do { left_mg.move(-50); right_mg.move(-50); pros::delay(100); left_mg.move(50); right_mg.move(50); pros::delay(100); } while(0)
@@ -47,24 +47,24 @@ inline pros::Motor top_roller(11, pros::v5::MotorGear::green);
 	backward(50); \
 	stop(); } while(0)
 
-	#define traverse_long_goal() do {turnright(); \
+	#define traverse_long_goal() do {turnright(90); \
 	forward(50); \
 	stop(); \
-	turnleft(); \
+	turnleft(90); \
 	stop(); \
 	forward(500); \
 	stop(); \
-	turnleft(); \
+	turnleft(90); \
 	stop(); \
 	forward(50); \
 	stop();\
-	turnleft();} while(0)
+	turnleft(90);} while(0)
 	
-	#define traverse_match_load() do {turnright(); \
+	#define traverse_match_load() do {turnright(90); \
 	stop(); \
 	forward(500); \
 	stop();\
-	turnleft();} while(0)
+	turnleft(90);} while(0)
 
 // Match loader solenoids (ports G and H)
 pros::ADIDigitalOut descorer('G');
@@ -78,14 +78,14 @@ pros::ADIDigitalOut match_loader_solenoid('H');
 
 // A simple autonomous function that drives forward for a short time
 void skeleton_auto() {
-	pros::MotorGroup left_mg({-16, 18, -17});
-	pros::MotorGroup right_mg({-13, 14, -12});
+	pros::MotorGroup left_mg({16, 18, 17});    // Creates a motor group with forwards ports 1 & 3 and reversed port 2
+	pros::MotorGroup right_mg({13, 14, 12});  // Creates a motor group with forwards port 5 and reversed ports 4 & 6
 	
 
 	//Still need first move here.
 
-	forward(300);
-	turnleft();
+	forward(250);
+	turnleft(90);
 	stop();
 
 
@@ -104,11 +104,11 @@ void skeleton_auto() {
 	
 	load_score();  //Fourth Load and Score
 
-	turnright();
+	turnright(90);
 	stop();
 	forward(100);
 	stop();
-	turnright();
+	turnright(90);
 	stop();
 	forward(200);
 
@@ -213,6 +213,7 @@ void opcontrol() {
 	match_loader_solenoid.set_value(false);
 	descorer.set_value(false);
 
+
 	while (true) {
 		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
 	 	                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
@@ -254,27 +255,28 @@ void opcontrol() {
 
 		left_mg.move(left);
 		right_mg.move(right);
-		conveyor.move(conveyor_speed);      // Conveyor controlled by right joystick 
+		if (match_load_enabled) {
+			store_match_load();
+		} else if (shoot_enabled) {
+			intake_on();
+		} else {
+			conveyor.move(conveyor_speed);      // Conveyor controlled by right joystick
+			top_roller_off();
+		}
 
-		//A: Loading toggle - Toggle on/off
-	 	if (master.get_digital_new_press(DIGITAL_A)) {
+		//B: Loading toggle - Toggle on/off
+	 	if (master.get_digital_new_press(DIGITAL_B)) {
 	 		match_load_enabled = !match_load_enabled;
-	 		if (match_load_enabled)
-	 			store_match_load();
-	 		else {
-	 			conveyor_off();
-	 			top_roller_off();
+	 		if (match_load_enabled) {
+	 			shoot_enabled = false;
 	 		}
 	 	}
 
 		// X: "Shoot" button - Toggle on/off
 	 	if (master.get_digital_new_press(DIGITAL_X)) {
 	 		shoot_enabled = !shoot_enabled;
-	 		if (shoot_enabled)
-	 			intake_on();
-	 		else {
-	 			conveyor_off();
-	 			top_roller_off();
+	 		if (shoot_enabled) {
+	 			match_load_enabled = false;
 	 		}
 		}
 		
