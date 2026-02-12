@@ -11,6 +11,12 @@ inline pros::Motor top_roller(11, pros::v5::MotorGear::green);
 inline pros::MotorGroup left_mg({16, 18, 17});
 inline pros::MotorGroup right_mg({13, 14, 12});
 
+/*  This is the original motor group so use this if the all positive one is not working. 
+	It appears that turning might not be working with auton. 
+inline pros::MotorGroup left_mg({-16, 18, 17});
+inline pros::MotorGroup right_mg({-13, -14, 12});
+*/
+
 // Conveyor control macros
 #define conveyor_on() conveyor.move(120)
 #define conveyor_off() conveyor.move(0)
@@ -53,17 +59,17 @@ inline pros::MotorGroup right_mg({13, 14, 12});
 		stop(); } while(0)
 
 #define traverse_long_goal() do {turnright(90, 90); \
-		forward(90, 50); \
+		forward(100, 50); \
 		stop(); \
-		turnleft(90, 90); \
+		turnleft(100, 90); \
 		stop(); \
-		forward(90, 500); \
+		forward(100, 500); \
 		stop(); \
-		turnleft(90, 90); \
+		turnleft(100, 90); \
 		stop(); \
-		forward(90, 50); \
+		forward(100, 50); \
 		stop();\
-		turnleft(90, 90);} while(0)
+		turnleft(100, 90);} while(0)
 	
 #define traverse_match_load() do {turnright(90, 90); \
 		stop(); \
@@ -114,12 +120,6 @@ void skeleton_auto() {
 	forward(90, 200);
 
 	
-
-
-
-
-
-
 }
 
 /**
