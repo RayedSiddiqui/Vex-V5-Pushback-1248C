@@ -21,18 +21,18 @@ inline pros::MotorGroup right_mg({13, 14, 12});
 #define top_roller_off() top_roller.move(0)
 #define top_roller_reverse() top_roller.move(90)
 // autonomous movement helper + macros
-	#define drive_ms(l, r, ms) do { left_mg.move(l); right_mg.move(r); pros::delay(ms); left_mg.move(0); right_mg.move(0); } while(0)
-	#define turnright(speed, ms) drive_ms((speed), -(speed), (ms))
-	#define turnleft(speed, ms) drive_ms(-(speed), (speed), (ms))
-	#define forward(speed, ms) drive_ms((speed), (speed), (ms))
-	#define backward(speed, ms) drive_ms(-(speed), -(speed), (ms))
-	#define stop() do { left_mg.move(0); right_mg.move(0); pros::delay(50); } while(0)
-	#define score() do { top_roller_on(); pros::delay(300); top_roller_off(); } while(0)
-	#define jiggle() do { left_mg.move(-50); right_mg.move(-50); pros::delay(100); left_mg.move(50); right_mg.move(50); pros::delay(100); } while(0)
-	#define lower_match_loader() do { match_loader_solenoid.set_value(true); pros::delay(100); } while(0)
-	#define raise_match_loader() do { match_loader_solenoid.set_value(false); pros::delay(100); } while(0)
-	
-	#define load_score() do { \
+#define drive_ms(l, r, ms) do { left_mg.move(l); right_mg.move(r); pros::delay(ms); left_mg.move(0); right_mg.move(0); } while(0)
+#define turnright(speed, ms) drive_ms((speed), -(speed), (ms))
+#define turnleft(speed, ms) drive_ms(-(speed), (speed), (ms))
+#define forward(speed, ms) drive_ms((speed), (speed), (ms))
+#define backward(speed, ms) drive_ms(-(speed), -(speed), (ms))
+#define stop() do { left_mg.move(0); right_mg.move(0); pros::delay(50); } while(0)
+#define score() do { top_roller_on(); pros::delay(300); top_roller_off(); } while(0)
+#define jiggle() do { left_mg.move(-50); right_mg.move(-50); pros::delay(100); left_mg.move(50); right_mg.move(50); pros::delay(100); } while(0)
+#define lower_match_loader() do { match_loader_solenoid.set_value(true); pros::delay(100); } while(0)
+#define raise_match_loader() do { match_loader_solenoid.set_value(false); pros::delay(100); } while(0)
+
+#define load_score() do { \
 		top_roller_reverse(); \
 		conveyor_on(); \
 		backward(90, 200); \
@@ -52,7 +52,7 @@ inline pros::MotorGroup right_mg({13, 14, 12});
 		backward(90, 50); \
 		stop(); } while(0)
 
-	#define traverse_long_goal() do {turnright(90, 90); \
+#define traverse_long_goal() do {turnright(90, 90); \
 		forward(90, 50); \
 		stop(); \
 		turnleft(90, 90); \
@@ -65,7 +65,7 @@ inline pros::MotorGroup right_mg({13, 14, 12});
 		stop();\
 		turnleft(90, 90);} while(0)
 	
-	#define traverse_match_load() do {turnright(90, 90); \
+#define traverse_match_load() do {turnright(90, 90); \
 		stop(); \
 		forward(90, 500); \
 		stop();\
