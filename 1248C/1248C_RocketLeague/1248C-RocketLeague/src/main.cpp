@@ -104,6 +104,13 @@ void skeleton_auto() {
 	
 	load_score();  //Fourth Load and Score
 
+	turnright();
+	stop();
+	forward(100);
+	stop();
+	turnright();
+	stop();
+	forward(200);
 
 	
 
