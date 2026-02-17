@@ -34,7 +34,7 @@ We use:
 Kai \
 Filmona \
 Henry \
-Rayed (🐐) \
+Rayed (:expressionless:) \
 Dominic \
 Yafet \
 Simran \
