@@ -23,6 +23,12 @@ We use:
 
 ---
 
+## Programs
+
+- One program for left side match auton
+- One program for right side match auton
+- One program for skills auton
+
 ## Contributors/Team Members 2025-2026
 
 Kai \
