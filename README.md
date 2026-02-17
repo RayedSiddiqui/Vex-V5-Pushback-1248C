@@ -1,4 +1,4 @@
-# VEX Robotics Team 1248c — Code Repository
+# VEX Robotics Team 1248C — Code Repository
 
 Welcome to the official GitHub repository for **VEX Robotics Team 1248c**!  
 This repo contains the code, documentation, and resources used for building and programming our competition robot.
@@ -28,7 +28,7 @@ We use:
 Kai \
 Filmona \
 Henry \
-Rayed \
+Rayed (🐐) \
 Dominic \
 Yafet \
 Simran \
