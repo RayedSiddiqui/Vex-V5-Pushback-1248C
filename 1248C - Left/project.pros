@@ -1,7 +1,7 @@
 {
   "py/object": "pros.conductor.project.Project",
   "py/state": {
-    "project_name": "1248C - Hen/Sim",
+    "project_name": "1248C - Left",
     "target": "v5",
     "templates": {
       "kernel": {
@@ -592,8 +592,9 @@
       }
     },
     "upload_options": {
-      "icon": "alien",
-      "slot": 2
+      "icon": "pizza",
+      "slot": 1,
+      "description": "Match code that has auton for left side of the field"
     },
     "use_early_access": false
   }

@@ -592,8 +592,8 @@
       }
     },
     "upload_options": {
-      "icon": "alien",
-      "slot": 2
+      "icon": "pros",
+      "slot": 5
     },
     "use_early_access": false
   }
