@@ -593,7 +593,7 @@
     },
     "upload_options": {
       "icon": "planet",
-      "slot": 2,
+      "slot": 4,
       "description": "Match code that has auton for right side of the field"
     },
     "use_early_access": false
