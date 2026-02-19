@@ -89,7 +89,6 @@ pros::ADIDigitalOut match_loader_solenoid('H');
 // Store match loads (conveyor on, top roller in reverse at half speed)
 #define store_match_load() do { conveyor.move(120); top_roller.move(55); } while(0)
 
-// A simple autonomous function that drives forward for a short time
 void skeleton_auto() {
 	//Still need figure outfirst move here.
 
