@@ -91,8 +91,58 @@ pros::ADIDigitalOut match_loader_solenoid('H');
 
 // A simple autonomous function that drives forward for a short time
 void skeleton_auto() {
-	//Still need figure outfirst move here.
+	//start right, matchload and score 6 balls and use descore 
+	// move through middle and score bottom
+	// go to left, matchload score 6 balls and use descore
+	//go park
 
+	//step 1
+	/*
+	drive straight
+	turn 90 degrees cw
+	match load - jiggle jiggle
+	drive backwards 
+	score 
+	drive forward
+	turn 90 degrees cw
+	drive forward
+	turn 90 degrees + some more cw 
+	drive forward and hope aligner lines up the descore
+	put the descore down and drag balls into a middle 
+	pick up descore 
+	*/
+
+	//step 2
+	/*
+	turn 90 degrees ccw
+	go into the mid balls on right  side by driving straight
+	drive into mid balls on left  side by driving straight
+	turn 45 degrees + or - some more ccw to look at top 
+	drive backwards into it and drop them - jiggle jiggle 
+	*/
+
+	//step 3
+	/*
+	drive straight
+	turn 45 degrees ccw
+	match load - jiggle jiggle
+	drive backwards 
+	score 
+	drive forward
+	turn 90 degrees ccw
+	drive forward
+	turn 90 degrees + some more ccw 
+	drive forward and hope aligner lines up the descore
+	put the descore down and drag balls into a middle 
+	pick up descore 
+	*/
+
+	//step 4
+	/*
+	come straight backward 
+	turn 90 degrees cw
+	drive straight into park and done 
+	*/
 
 
 	load_score(); //First Load
