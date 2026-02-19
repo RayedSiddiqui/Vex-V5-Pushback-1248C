@@ -105,19 +105,21 @@ void skeleton_auto() {
 	drive forward
 	turn 90 degrees cw
 	drive forward
-	turn 90 degrees + some more cw 
-	drive forward and hope aligner lines up the descore
+	turn 90 degrees + some more ccw 
+	drive backward and hope aligner lines up the descore
 	put the descore down and drag balls into a middle 
 	pick up descore 
+	drive forward
 	*/
 
 	//step 2
 	/*
-	turn 90 degrees ccw
+	turn 90 degrees + some cw
 	go into the mid balls on right  side by driving straight
+	turn 45 degrees ccw 
 	drive into mid balls on left  side by driving straight
 	turn 45 degrees + or - some more ccw to look at top 
-	drive backwards into it and drop them - jiggle jiggle 
+	drive backwards into it and drop them
 	*/
 
 	//step 3
