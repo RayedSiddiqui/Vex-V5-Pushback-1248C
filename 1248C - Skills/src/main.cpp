@@ -145,31 +145,72 @@ void skeleton_auto() {
 	drive straight into park and done 
 	*/
 
+	// STEP 1: Right side match load and score
+	forward(-93, 500);
+	turnleft(180, 180);
+	load_score();
+	// forward(90, 300);
+	// stop();
+	// turnright(90, 90);
+	// stop();
+	// forward(90, 300);
+	// stop();
+	// turnleft(90, 180);
+	// stop();
+	// descorer.set_value(true);
+	// backward(90, 400);
+	// stop();
+	// pros::delay(200);
+	// descorer.set_value(false);
+	// forward(90, 400);
+	// stop();
 
-	load_score(); //First Load
+	// // STEP 2: Middle balls
+	// turnright(90, 100);
+	// stop();
+	// forward(90, 600);
+	// stop();
+	// turnleft(45, 60);
+	// stop();
+	// forward(90, 400);
+	// stop();
+	// turnleft(45, 80);
+	// stop();
+	// backward(90, 300);
+	// stop();
+	// score();
+	// stop();
 
-	traverse_long_goal();
-	 
-	load_score(); //Second Load and Score
+	// // STEP 3: Left side match load and score
+	// forward(90, 300);
+	// stop();
+	// turnleft(45, 60);
+	// stop();
+	// load_score();
+	// forward(90, 300);
+	// stop();
+	// turnleft(90, 90);
+	// stop();
+	// forward(90, 300);
+	// stop();
+	// turnleft(90, 180);
+	// stop();
+	// descorer.set_value(true);
+	// forward(90, 400);
+	// stop();
+	// pros::delay(200);
+	// descorer.set_value(false);
+	// backward(90, 400);
+	// stop();
 
+	// // STEP 4: Park
+	// backward(90, 600);
+	// stop();
+	// turnright(90, 90);
+	// stop();
+	// forward(90, 400);
+	// stop();
 
-	traverse_match_load();
-	
-	load_score();  //Third Load and Score
-	
-	traverse_long_goal();
-	
-	load_score();  //Fourth Load and Score
-
-	turnright(90, 90);
-	stop();
-	forward(90, 100);
-	stop();
-	turnright(90, 90);
-	stop();
-	forward(90, 200);
-
-	
 }
 
 
@@ -249,101 +290,7 @@ void autonomous() {
  * task, not resume it from where it left off.
  */
 
-/*void opcontrol() {
-	
-	
-	// State variables for toggles
-	bool conveyor_enabled = false;
-	bool roller_enabled = false;
-	bool match_load_enabled = false;
-	bool match_loader_solenoid_enable = false;
-	bool shoot_enabled = false;
-	bool descorer_enabled = false;
-
-	match_loader_solenoid.set_value(false);
-	descorer.set_value(false);
-
-	while (true) {
-		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
-	 	                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
-	 	                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);  // Prints status of the emulated screen LCDs
-
-	 	// Arcade control scheme
-	 	int dir = master.get_analog(ANALOG_LEFT_Y);    // Gets amount forward/backward from left joystick
-		int turn = master.get_analog(ANALOG_RIGHT_X);  // Gets the turn left/right from right joystick
-		turn = turn * 0.5;
-		left_mg.move(dir - turn);                      // Sets left motor voltage
-		right_mg.move(dir + turn);                     // Sets right motor voltage
-
-	 	// R1: Toggle conveyor on/off
-	 	if (master.get_digital_new_press(DIGITAL_R1)) {
-	 		conveyor_enabled = !conveyor_enabled;
-	 		if (conveyor_enabled)
-	 			conveyor_on();
-	 		else
-	 			conveyor_off();
-	 	}
-
-	 	// L1: Toggle roller on/off
-	 	if (master.get_digital_new_press(DIGITAL_L1)) {
-	 		roller_enabled = !roller_enabled;
-	 		if (roller_enabled)
-	 			top_roller_on();
-	 		else
-	 			top_roller_off();
-	 	}
-
-	 	// R2: Reverse conveyor and turn off
-	 	if (master.get_digital_new_press(DIGITAL_R2)) {
-	 		conveyor_reverse();
-	 		pros::delay(200);  // Reverse for 200ms
-	 		conveyor_off();
-	 		conveyor_enabled = false;
-	 	}
-
-	 	// L2: Reverse roller and turn off
-	 	if (master.get_digital_new_press(DIGITAL_L2)) {
-	 		top_roller_reverse();
-	 		pros::delay(200);  // Reverse for 200ms
-	 		top_roller_off();
-	 		roller_enabled = false;
-	 	}
-
-		// X: "Shoot" button - Toggle on/off
-	 	if (master.get_digital_new_press(DIGITAL_X)) {
-	 		shoot_enabled = !shoot_enabled;
-	 		if (shoot_enabled)
-	 			intake_on();
-	 		else {
-	 			conveyor_off();
-	 			top_roller_off();
-	 		}
-		}
-
-	 	// B: Toggle loader (store_match_load) on/off
-	 	if (master.get_digital_new_press(DIGITAL_B)) {
-	 		match_load_enabled = !match_load_enabled;
-	 		if (match_load_enabled)
-	 			store_match_load();
-	 		else {
-	 			conveyor_off();
-	 			top_roller_off();
-	 		}
-	 	}
-		
-		// A: Toggle match loader down/up
-		if (master.get_digital_new_press(DIGITAL_A)) {
-			match_loader_solenoid_enable = !match_loader_solenoid_enable;
-			match_loader_solenoid.set_value(match_loader_solenoid_enable);
-		}
-
-		// Y: Descorer down/up
-		if (master.get_digital_new_press(DIGITAL_Y)) {
-			descorer_enabled = !descorer_enabled;
-			descorer.set_value(descorer_enabled);
-		}
-	 	pros::delay(20);  // Run for 20 ms then update
-	 }
+void opcontrol() {
+	skeleton_auto();
 }
 
-*/
