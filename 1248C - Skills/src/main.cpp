@@ -173,7 +173,7 @@ void skills_auto() {
 	store();
 	stop_wait(1000);
 	
-	drive_distance(7, 60);   // Move closer to match loader
+	drive_distance(5, 60);   // Move closer to match loader
 	stop_wait(1000);
 	
 	// Jiggle to load rings
@@ -194,7 +194,8 @@ void skills_auto() {
 
 	stop_wait(600);
 	
-	score();                 // Start scoring
+	conveyor_on(); // Start scoring
+	roller_reverse();
 	stop_wait(2000);
 	shutdown();              // Stop scoring
 	
@@ -306,7 +307,7 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-	dummy_auto();
+	skills_auto();
 }
 
 /**
