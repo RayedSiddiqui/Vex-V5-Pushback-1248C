@@ -163,7 +163,7 @@ void dummy_auto() {
  */
 void skills_auto() {
 	// STEP 1: Right side match load and score
-	drive_distance(29.5, 75);  // Drive to match load station
+	drive_distance(29.1, 75);  // Drive to match load station
 	stop_wait(600);
 	
 	turn_degrees(87.4, 100);   // Turn to face match loader
@@ -173,30 +173,30 @@ void skills_auto() {
 	store();
 	stop_wait(1000);
 	
-	drive_distance(6.7, 75);   // Move closer to match loader
+	drive_distance(7, 60);   // Move closer to match loader
 	stop_wait(1000);
 	
 	// Jiggle to load rings
 	for (int i = 0; i < 2; i++) {
-		drive_distance(2, 75);
+		drive_distance(2, 50);
 		stop_wait(1000);
-		drive_distance(-1, 75);
+		drive_distance(-1, 50);
 	}
 
 	drive_distance(-5, 75);  // Back away from match loader
 	raise_match_loader();
-	shutdown();
 	stop_wait(600);
 	
-	turn_degrees(-10,100);    // Adjust angle for scoring
+	turn_degrees(-8.67,100);    // Adjust angle for scoring
 	stop_wait(600);
 
-	drive_distance(-21, 75);  // Back away from match loader
+	drive_distance(-22, 75);  // Back away from match loader
 
 	stop_wait(600);
 	
 	score();                 // Start scoring
-	stop_wait(3000);
+	stop_wait(2000);
+	shutdown();              // Stop scoring
 	
 	drive_distance(2, 75);   // Move forward slightly
 	stop_wait(5000);
