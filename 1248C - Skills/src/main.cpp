@@ -18,6 +18,14 @@ inline pros::ADIDigitalOut descorer('G');
 inline pros::ADIDigitalOut match_loader_solenoid('H');
 
 
+// CONSTANTS ----------------------------------------------------------
+
+const double WHEEL_DIAMETER = 3.25;  // inches
+const double GEAR_RATIO = 1.0;       // external gear ratio (motor shaft to wheel)
+const double TRACK_WIDTH = 9.5;      // inches between left and right wheels
+const double WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER * M_PI;
+
+
 // MACROS -------------------------------------------------------------
 
 // Conveyor control macros
@@ -42,32 +50,110 @@ inline pros::ADIDigitalOut match_loader_solenoid('H');
 // Store match loads (conveyor on, roller in reverse at half speed)
 #define store() do { conveyor.move(120); roller.move(55); } while(0)
 
-// Autonomous movement helper + macros
-#define drive_ms(l, r, ms) do { left_mg.move(l); right_mg.move(r); pros::delay(ms); left_mg.move(0); right_mg.move(0); } while(0)
-#define turnright(speed, ms) drive_ms((speed), -(speed), (ms))
-#define turnleft(speed, ms) drive_ms(-(speed), (speed), (ms))
-#define forward(speed, ms) drive_ms((speed), (speed), (ms))
-#define backward(speed, ms) drive_ms(-(speed), -(speed), (ms))
-#define stop(ms) do { left_mg.move(0); right_mg.move(0); pros::delay(ms); } while(0)
-#define jiggle() do { left_mg.move(-50); right_mg.move(-50); pros::delay(200); left_mg.move(50); right_mg.move(50); pros::delay(200); } while(0)
+// Solenoid control macros
 #define lower_match_loader() do { match_loader_solenoid.set_value(true); } while(0)
 #define raise_match_loader() do { match_loader_solenoid.set_value(false); } while(0)
 
 
-// NEW METHODS --------------------------------------------------------
+// MOVEMENT FUNCTIONS -------------------------------------------------
 
-/** 
- * A simple autonomous function that drives forward for a short time
+/**
+ * Drive straight for a specified distance
+ * @param inches Distance to travel (positive = forward, negative = backward)
+ * @param speed Motor speed (-127 to 127)
  */
-void dummy_auto() {
-	// Drive for 100ms to approximate 2 inches
-	roller_reverse();
-	conveyor_on();
-	left_mg.move(-100);
-	right_mg.move(-100);
-	pros::delay(300);  
+void drive_distance(double inches, int speed) {
+	double target_degrees = (inches / WHEEL_CIRCUMFERENCE) * 360.0 * GEAR_RATIO;
+	
+	left_mg.tare_position();
+	right_mg.tare_position();
+	
+	// Set brake mode to reduce overshoot
+	left_mg.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	right_mg.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	
+	int direction = (inches >= 0) ? 1 : -1;
+	left_mg.move(speed * direction);
+	right_mg.move(speed * direction);
+	
+	while (fabs(left_mg.get_position()) < fabs(target_degrees)) {
+		pros::delay(10);
+	}
+	
+	// Stop with active braking
 	left_mg.move(0);
 	right_mg.move(0);
+	left_mg.brake();
+	right_mg.brake();
+}
+
+/**
+ * Turn the robot by a specified angle
+ * @param degrees Angle to turn (positive = right, negative = left)
+ * @param speed Motor speed (0 to 127)
+ */
+void turn_degrees(double degrees, int speed) {
+	double arc_length = (fabs(degrees) / 360.0) * M_PI * TRACK_WIDTH;
+	double target_degrees = (arc_length / WHEEL_CIRCUMFERENCE) * 360.0 * GEAR_RATIO;
+	
+	left_mg.tare_position();
+	right_mg.tare_position();
+	
+	// Set brake mode to reduce overshoot
+	left_mg.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	right_mg.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	
+	if (degrees > 0) {
+		left_mg.move(speed);
+		right_mg.move(-speed);
+	} else {
+		left_mg.move(-speed);
+		right_mg.move(speed);
+	}
+	
+	while (fabs(left_mg.get_position()) < fabs(target_degrees)) {
+		pros::delay(10);
+	}
+	
+	// Stop with active braking
+	left_mg.move(0);
+	right_mg.move(0);
+	left_mg.brake();
+	right_mg.brake();
+}
+
+/**
+ * Stop and wait
+ * @param ms Milliseconds to wait
+ */
+void stop_wait(int ms) {
+	left_mg.move(0);
+	right_mg.move(0);
+	pros::delay(ms);
+}
+
+/**
+ * Jiggle back and forth to load rings
+ */
+void jiggle_load() {
+	left_mg.move(-50);
+	right_mg.move(-50);
+	pros::delay(200);
+	left_mg.move(50);
+	right_mg.move(50);
+	pros::delay(200);
+}
+
+
+// AUTONOMOUS ROUTINES ------------------------------------------------
+
+/** 
+ * Simple autonomous for testing
+ */
+void dummy_auto() {
+	roller_reverse();
+	conveyor_on();
+	drive_distance(-2, 100);
 	roller_off();
 	conveyor_off();
 }
@@ -76,139 +162,86 @@ void dummy_auto() {
  * Skills autonomous
  */
 void skills_auto() {
-	//start right, matchload and score 6 balls and use descore 
-	// move through middle and score bottom
-	// go to left, matchload score 6 balls and use descore
-	//go park
-
-	//step 1
-	/*
-	drive straight
-	turn 90 degrees cw
-	match load - jiggle jiggle
-	drive backwards 
-	score 
-	drive forward
-	turn 90 degrees cw
-	drive forward
-	turn 90 degrees + some more ccw 
-	drive backward and hope aligner lines up the descore
-	put the descore down and drag balls into a middle 
-	pick up descore 
-	drive forward
-	*/
-
-	//step 2
-	/*
-	turn 90 degrees + some cw
-	go into the mid balls on right  side by driving straight
-	turn 45 degrees ccw 
-	drive into mid balls on left  side by driving straight
-	turn 45 degrees + or - some more ccw to look at top 
-	drive backwards into it and drop them
-	*/
-
-	//step 3
-	/*
-	drive straight
-	turn 45 degrees ccw
-	match load - jiggle jiggle
-	drive backwards 
-	score 
-	drive forward
-	turn 90 degrees ccw
-	drive forward
-	turn 90 degrees + some more ccw 
-	drive forward and hope aligner lines up the descore
-	put the descore down and drag balls into a middle 
-	pick up descore 
-	*/
-
-	//step 4
-	/*
-	come straight backward 
-	turn 90 degrees cw
-	drive straight into park and done 
-	*/
-
 	// STEP 1: Right side match load and score
-	forward(75, 540);
-	pros::delay(200);
-	turnright(100, 220);
-	pros::delay(200);
+	drive_distance(29.5, 75);  // Drive to match load station
+	stop_wait(600);
+	
+	turn_degrees(87.4, 100);   // Turn to face match loader
+	stop_wait(600);
 
 	lower_match_loader();
 	store();
-	pros::delay(1000);
-	forward(75, 220);
-	pros::delay(500);
-	// Jiggle
-	for (int i = 0; i < 5; i++) {
-		forward(75, 200);
-		pros::delay(500);
-		backward(75, 100);
+	stop_wait(1000);
+	
+	drive_distance(6.7, 75);   // Move closer to match loader
+	stop_wait(1000);
+	
+	// Jiggle to load rings
+	for (int i = 0; i < 2; i++) {
+		drive_distance(2, 75);
+		stop_wait(1000);
+		drive_distance(-1, 75);
 	}
 
-	backward(75, 375);
-	pros::delay(200);
-	score();
-	pros::delay(3000);
-	forward(75, 150);
-
-	pros::delay(5000);
+	drive_distance(-5, 75);  // Back away from match loader
+	raise_match_loader();
+	shutdown();
+	stop_wait(600);
 	
-	// stop();
-	// pros::delay(200);
-	// descorer.set_value(false);
-	// forward(90, 400);
-	// stop();
+	turn_degrees(-10,100);    // Adjust angle for scoring
+	stop_wait(600);
 
+	drive_distance(-21, 75);  // Back away from match loader
+
+	stop_wait(600);
+	
+	score();                 // Start scoring
+	stop_wait(3000);
+	
+	drive_distance(2, 75);   // Move forward slightly
+	stop_wait(5000);
+	
+	// TODO: Uncomment and tune these steps after testing STEP 1
+	
 	// // STEP 2: Middle balls
-	// turnright(90, 100);
-	// stop();
-	// forward(90, 600);
-	// stop();
-	// turnleft(45, 60);
-	// stop();
-	// forward(90, 400);
-	// stop();
-	// turnleft(45, 80);
-	// stop();
-	// backward(90, 300);
-	// stop();
+	// descorer.set_value(false);
+	// drive_distance(8, 90);
+	// stop_wait(200);
+	// turn_degrees(90, 100);
+	// drive_distance(12, 90);
+	// turn_degrees(-45, 60);
+	// drive_distance(8, 90);
+	// turn_degrees(-45, 80);
+	// drive_distance(-6, 90);
 	// score();
-	// stop();
+	// stop_wait(500);
 
 	// // STEP 3: Left side match load and score
-	// forward(90, 300);
-	// stop();
-	// turnleft(45, 60);
-	// stop();
-	// load_score();
-	// forward(90, 300);
-	// stop();
-	// turnleft(90, 90);
-	// stop();
-	// forward(90, 300);
-	// stop();
-	// turnleft(90, 180);
-	// stop();
+	// drive_distance(6, 90);
+	// turn_degrees(-45, 60);
+	// drive_distance(3, 75);
+	// for (int i = 0; i < 5; i++) {
+	//     drive_distance(2, 75);
+	//     stop_wait(500);
+	//     drive_distance(-1, 75);
+	// }
+	// drive_distance(-5, 75);
+	// score();
+	// stop_wait(3000);
+	// drive_distance(6, 90);
+	// turn_degrees(-90, 90);
+	// drive_distance(6, 90);
+	// turn_degrees(-90, 180);
 	// descorer.set_value(true);
-	// forward(90, 400);
-	// stop();
-	// pros::delay(200);
+	// drive_distance(8, 90);
+	// stop_wait(200);
 	// descorer.set_value(false);
-	// backward(90, 400);
-	// stop();
+	// drive_distance(-8, 90);
 
 	// // STEP 4: Park
-	// backward(90, 600);
-	// stop();
-	// turnright(90, 90);
-	// stop();
-	// forward(90, 400);
-	// stop();
-
+	// drive_distance(-12, 90);
+	// turn_degrees(90, 90);
+	// drive_distance(8, 90);
 }
 
 
