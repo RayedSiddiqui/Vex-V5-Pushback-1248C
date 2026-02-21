@@ -22,7 +22,7 @@ inline pros::ADIDigitalOut match_loader_solenoid('H');
 
 const double WHEEL_DIAMETER = 3.25;  // inches
 const double GEAR_RATIO = 1.0;       // external gear ratio (motor shaft to wheel)
-const double TRACK_WIDTH = 9.5;      // inches between left and right wheels
+const double TRACK_WIDTH = 9.5;      // inches between left and right wheels (16 VEX holes × 0.5")
 const double WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER * M_PI;
 
 
@@ -37,6 +37,8 @@ const double WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER * M_PI;
 #define roller_on() roller.move(-120)
 #define roller_reverse() roller.move(90)
 #define roller_off() roller.move(0)
+
+
 
 // Turn conveyor and roller on
 #define score() do { conveyor_on(); roller_on(); } while(0)
@@ -63,28 +65,34 @@ const double WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER * M_PI;
  * @param speed Motor speed (-127 to 127)
  */
 void drive_distance(double inches, int speed) {
-	double target_degrees = (inches / WHEEL_CIRCUMFERENCE) * 360.0 * GEAR_RATIO;
-	
-	left_mg.tare_position();
-	right_mg.tare_position();
-	
-	// Set brake mode to reduce overshoot
-	left_mg.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-	right_mg.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-	
-	int direction = (inches >= 0) ? 1 : -1;
-	left_mg.move(speed * direction);
-	right_mg.move(speed * direction);
-	
-	while (fabs(left_mg.get_position()) < fabs(target_degrees)) {
-		pros::delay(10);
-	}
-	
-	// Stop with active braking
-	left_mg.move(0);
-	right_mg.move(0);
-	left_mg.brake();
-	right_mg.brake();
+    double target_degrees = (inches / WHEEL_CIRCUMFERENCE) * 360.0 * GEAR_RATIO;
+    
+    left_mg.tare_position();
+    right_mg.tare_position();
+    
+    left_mg.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+    right_mg.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+    
+    int direction = (inches >= 0) ? 1 : -1;
+    left_mg.move(speed * direction);
+    right_mg.move(speed * direction);
+    
+    // Save current conveyor/roller velocities to maintain during movement
+    int current_conveyor = conveyor.get_target_velocity();
+    int current_roller = roller.get_target_velocity();
+    
+    while (fabs(left_mg.get_position()) < fabs(target_degrees)) {
+        // Continuously refresh conveyor/roller commands
+        conveyor.move(current_conveyor);
+        roller.move(current_roller);
+        pros::delay(10);
+    }
+    
+    // Stop with active braking
+    left_mg.move(0);
+    right_mg.move(0);
+    left_mg.brake();
+    right_mg.brake();
 }
 
 /**
@@ -93,33 +101,39 @@ void drive_distance(double inches, int speed) {
  * @param speed Motor speed (0 to 127)
  */
 void turn_degrees(double degrees, int speed) {
-	double arc_length = (fabs(degrees) / 360.0) * M_PI * TRACK_WIDTH;
-	double target_degrees = (arc_length / WHEEL_CIRCUMFERENCE) * 360.0 * GEAR_RATIO;
-	
-	left_mg.tare_position();
-	right_mg.tare_position();
-	
-	// Set brake mode to reduce overshoot
-	left_mg.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-	right_mg.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-	
-	if (degrees > 0) {
-		left_mg.move(speed);
-		right_mg.move(-speed);
-	} else {
-		left_mg.move(-speed);
-		right_mg.move(speed);
-	}
-	
-	while (fabs(left_mg.get_position()) < fabs(target_degrees)) {
-		pros::delay(10);
-	}
-	
-	// Stop with active braking
-	left_mg.move(0);
-	right_mg.move(0);
-	left_mg.brake();
-	right_mg.brake();
+    double arc_length = (fabs(degrees) / 360.0) * M_PI * TRACK_WIDTH;
+    double target_degrees = (arc_length / WHEEL_CIRCUMFERENCE) * 360.0 * GEAR_RATIO;
+    
+    left_mg.tare_position();
+    right_mg.tare_position();
+    
+    // Set brake mode to reduce overshoot
+    left_mg.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+    right_mg.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+    
+    if (degrees > 0) {
+        left_mg.move(speed);
+        right_mg.move(-speed);
+    } else {
+        left_mg.move(-speed);
+        right_mg.move(speed);
+    }
+    
+    int current_conveyor = conveyor.get_target_velocity();
+    int current_roller = roller.get_target_velocity();
+    
+    while (fabs(left_mg.get_position()) < fabs(target_degrees)) {
+        // Continuously refresh conveyor/roller commands
+        conveyor.move(current_conveyor);
+        roller.move(current_roller);
+        pros::delay(10);
+    }
+    
+    // Stop with active braking
+    left_mg.move(0);
+    right_mg.move(0);
+    left_mg.brake();
+    right_mg.brake();
 }
 
 /**
@@ -160,8 +174,8 @@ void dummy_auto() {
 
 /** 
  * Skills autonomous
- */
-void skills_auto() {
+ */void skills_auto() {
+	
 	// STEP 1: Right side match load and score
 	drive_distance(29.1, 75);  // Drive to match load station
 	stop_wait(600);
@@ -177,32 +191,51 @@ void skills_auto() {
 	stop_wait(1000);
 	
 	// Jiggle to load rings
-	for (int i = 0; i < 2; i++) {
-		drive_distance(2, 50);
+	for (int i = 0; i < 3; i++) {
+		drive_distance(1.25, 50);
 		stop_wait(1000);
 		drive_distance(-1, 50);
 	}
 
-	drive_distance(-5, 75);  // Back away from match loader
+	drive_distance(-5, 50);  // Back away from match loader
 	raise_match_loader();
 	stop_wait(600);
 	
-	turn_degrees(-8.67,100);    // Adjust angle for scoring
+	turn_degrees(-3.67,100);    // Adjust angle for scoring
 	stop_wait(600);
 
-	drive_distance(-22, 75);  // Back away from match loader
+	drive_distance(-19, 50);  // Back away from match loader
+	stop_wait(200);
+	// drive_distance(-1, 25);
 
 	stop_wait(600);
 	
-	score();                 // Start scoring
-	stop_wait(2000);
+	outtake();				// Unjam
+	stop_wait(200);
+
+	score();				// Start scoring
+	stop_wait(1800);
+
+	outtake();				// Unjam
+	stop_wait(200);
+
+	score();				// Finish scoring
+	stop_wait(1800);
+
+	outtake();				// Unjam
+	stop_wait(200);
+
+	score();				// Start scoring
+	stop_wait(1800);
+
 	shutdown();              // Stop scoring
 	
-	drive_distance(2, 75);   // Move forward slightly
-	stop_wait(5000);
+	drive_distance(6, 75);   // Move forward 
 	
+	stop_wait(600);
 	// TODO: Uncomment and tune these steps after testing STEP 1
 	
+	// (SKIPPED FOR NOW)
 	// // STEP 2: Middle balls
 	// descorer.set_value(false);
 	// drive_distance(8, 90);
@@ -217,34 +250,90 @@ void skills_auto() {
 	// stop_wait(500);
 
 	// // STEP 3: Left side match load and score
-	// drive_distance(6, 90);
-	// turn_degrees(-45, 60);
-	// drive_distance(3, 75);
-	// for (int i = 0; i < 5; i++) {
-	//     drive_distance(2, 75);
-	//     stop_wait(500);
-	//     drive_distance(-1, 75);
-	// }
-	// drive_distance(-5, 75);
-	// score();
-	// stop_wait(3000);
-	// drive_distance(6, 90);
-	// turn_degrees(-90, 90);
-	// drive_distance(6, 90);
-	// turn_degrees(-90, 180);
-	// descorer.set_value(true);
-	// drive_distance(8, 90);
-	// stop_wait(200);
-	// descorer.set_value(false);
-	// drive_distance(-8, 90);
+	turn_degrees(165, 100);		// Face left side of field
+	stop_wait(600);
+	
 
-	// // STEP 4: Park
-	// drive_distance(-12, 90);
-	// turn_degrees(90, 90);
-	// drive_distance(8, 90);
+	drive_distance(95, 90);		// Drive to other side of field
+	stop_wait(600);
+
+	turn_degrees(-72, 100);		// Face match loader
+	stop_wait(600);
+
+	drive_distance(2, 75);		// Move towards match loader
+	stop_wait(600);
+
+	lower_match_loader();
+	store();
+	stop_wait(1000);
+	
+	drive_distance(10, 60);   // Move into match loader
+	stop_wait(1000);
+	
+	
+	// Jiggle to load rings
+	for (int i = 0; i < 3; i++) {
+		drive_distance(1.25, 50);
+		stop_wait(1000);
+		drive_distance(-1, 50);
+	} 
+
+	drive_distance(-5, 75);
+	stop_wait(200);
+	raise_match_loader();
+
+	turn_degrees(-2,75); // turning 
+	stop_wait(200);
+
+	drive_distance(-13.5, 75);
+	stop_wait(200);
+	// drive_distance(-1, 25);
+
+	outtake();				// Unjam
+	stop_wait(200);
+
+	score();				// Start scoring
+	stop_wait(1800);
+
+	outtake();				// Unjam
+	stop_wait(200);
+
+	score();				// Start scoring
+	stop_wait(1800);
+
+	shutdown();              // Stop scoring 
+	
+	drive_distance(10, 75);   // Move forward 	
+	stop_wait(600);
+
+	turn_degrees(-74, 100);		// Face left side of field
+	stop_wait(600);
+
+	drive_distance(14, 60);		// drive for lining up with wall for parking
+	stop_wait(600);	
+
+	turn_degrees(85, 100);		// Face wall
+	stop_wait(600);
+
+	drive_distance(9, 60);		// drive into wall
+	stop_wait(600);	
+
+	turn_degrees(90, 100);		// Face left side of field
+	stop_wait(600);
+
+	drive_distance(-10, 100); // drive into parking zone
+	stop_wait(200);
+
+	drive_distance(2, 75);
+
+	stop_wait(200);
+	drive_distance(-2, 100);
+	stop_wait(200);
+
+	drive_distance(2, 75);   // Move forward
+	stop_wait(1000);
+	drive_distance(-55, 100);  // Move backward
 }
-
-
 // VEX METHODS --------------------------------------------------------
 
 /**
@@ -324,7 +413,7 @@ void autonomous() {
  */
 void opcontrol() {
 	// Temp skills auto
-	skills_auto();
+	 skills_auto();
 	
 	// State variables for controls
 	bool r1_pressed = false;
@@ -527,7 +616,7 @@ void opcontrol() {
 		
 		// Solenoids
 		// Up: Match loader down/up (toggle)
-		if (master.get_digital_new_press(DIGITAL_UP)) {
+		if (master.get_digital_new_press(DIGITAL_RIGHT)) {
 			match_loader_solenoid_enabled = !match_loader_solenoid_enabled;
 			match_loader_solenoid.set_value(match_loader_solenoid_enabled);
 		}
@@ -542,7 +631,7 @@ void opcontrol() {
 
 		// Drivetrain
 		// Right: Change forward direction (toggle)
-		if (master.get_digital_new_press(DIGITAL_RIGHT)) {
+		if (master.get_digital_new_press(DIGITAL_UP)) {
 			intake_forward = !intake_forward;
 		}
 

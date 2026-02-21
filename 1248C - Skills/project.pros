@@ -1,7 +1,7 @@
 {
   "py/object": "pros.conductor.project.Project",
   "py/state": {
-    "project_name": "1248C - Skills",
+    "project_name": "1248C - SKILLS",
     "target": "v5",
     "templates": {
       "kernel": {
@@ -594,7 +594,7 @@
     "upload_options": {
       "icon": "power",
       "slot": 3,
-      "description": "Program for skills auton"
+      "description": "Program for auton"
     },
     "use_early_access": false
   }
